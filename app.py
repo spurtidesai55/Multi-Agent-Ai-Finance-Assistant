@@ -695,12 +695,20 @@ async def process_query(
         logger.error(f"Error processing query: {str(e)}")
         return {"error": str(e)}
 
-# Function to start FastAPI in a separate thread
-def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+@st.cache_resource
+def start_backend():
+    # Function to start FastAPI in a separate thread
+    def run_fastapi():
+        import uvicorn
+        # Import the global app object
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Start FastAPI in a background thread only once
+    threading.Thread(target=run_fastapi, daemon=True).start()
+    return True
 
-# Start FastAPI in a background thread when this script runs
-threading.Thread(target=run_fastapi, daemon=True).start()
+# Initialize the backend server
+start_backend()
 
 # Now define the Streamlit app
 def main():
